@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Actividad — Líderes PF</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface2: #f0f2f5;
+    --border: #dde1e8;
+    --border2: #c8cdd8;
+    --green: #2db928;
+    --green-dark: #239420;
+    --green-light: #e8f8e7;
+    --green2: #8dc63f;
+    --green2-light: #f2f8e8;
+    --black: #1a1a1a;
+    --gray: #5a5a5a;
+    --gray2: #8a8f9a;
+    --gray3: #b8bcc8;
+    --text: #1a1a1a;
+    --text2: #5a5a5a;
+    --red: #d63d3d;
+    --red-light: #fdecea;
+    --r: 10px;
+    --shadow: 0 2px 8px rgba(0,0,0,.07);
+    --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Open Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    height: 60px;
+    background: var(--black);
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,.25);
+  }
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: .3px;
+  }
+  .nav-brand .brand-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    display: inline-block;
+  }
+  .nav-brand span { color: var(--green); }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    padding: 7px 18px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,.6);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .nav-tab:hover { background: rgba(255,255,255,.1); color: #fff; }
+  .nav-tab.active { background: var(--green); color: #fff; font-weight: 700; }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .current-leader-badge {
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: rgba(255,255,255,.75);
+  }
+  .current-leader-badge strong { color: var(--green); }
+
+  /* ── PAGES ── */
+  .page { display: none; padding: 28px; }
+  .page.active { display: block; }
+
+  /* ── LOGIN PAGE ── */
+  #page-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 60px);
+    background: linear-gradient(135deg, #f4f6f8 0%, #e8f8e7 100%);
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 44px;
+    width: 460px;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+  }
+  .login-logo {
+    margin-bottom: 24px;
+  }
+  .login-logo-icon {
+    width: 64px; height: 64px;
+    background: var(--green);
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+  .login-card h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--black);
+    margin-bottom: 6px;
+  }
+  .login-card h1 span { color: var(--green); }
+  .login-card p { color: var(--text2); margin-bottom: 28px; font-size: 14px; }
+  .login-card select {
+    width: 100%;
+    padding: 13px 16px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r);
+    color: var(--text);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    margin-bottom: 16px;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .login-card select:focus { outline: none; border-color: var(--green); }
+  .btn-primary {
+    width: 100%;
+    padding: 13px;
+    background: var(--green);
+    border: none;
+    border-radius: var(--r);
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s;
+    letter-spacing: .3px;
+  }
+  .btn-primary:hover { background: var(--green-dark); }
+
+  /* ── SECTION TITLES ── */
+  .section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--black);
+    margin-bottom: 4px;
+  }
+  .section-sub { color: var(--text2); font-size: 13px; margin-bottom: 24px; }
+
+  /* ── REGISTRO PAGE ── */
+  .registro-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) { .registro-grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--border);
+  }
+  .card-title .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  /* Activity counters */
+  .activity-counters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .counter-item { }
+  .counter-label {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin-bottom: 7px;
+    font-weight: 600;
+  }
+  .counter-control {
+    display: flex;
+    align-items: center;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .counter-control:focus-within { border-color: var(--green); }
+  .counter-btn {
+    width: 38px; height: 42px;
+    background: transparent;
+    border: none;
+    color: var(--green-dark);
+    font-size: 20px;
+    cursor: pointer;
+    transition: background .15s;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .counter-btn:hover { background: var(--green-light); }
+  .counter-val {
+    flex: 1;
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    background: transparent;
+    border: none;
+    color: var(--black);
+    width: 100%;
+    min-width: 0;
+    outline: none;
+    padding: 0;
+    -moz-appearance: textfield;
+  }
+  .counter-val::-webkit-outer-spin-button,
+  .counter-val::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .counter-val:focus { background: var(--green-light); }
+
+  .date-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .date-label { font-size: 12px; color: var(--text2); white-space: nowrap; font-weight: 600; }
+  .date-display {
+    flex: 1;
+    padding: 9px 13px;
+    background: var(--green-light);
+    border: 1px solid #c3e6c2;
+    border-radius: 7px;
+    font-size: 13px;
+    color: var(--green-dark);
+    font-weight: 600;
+  }
+  .btn-save {
+    width: 100%;
+    padding: 12px;
+    background: var(--green);
+    border: none;
+    border-radius: var(--r);
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s;
+    letter-spacing: .3px;
+  }
+  .btn-save:hover { background: var(--green-dark); }
+
+  /* Acompañamiento */
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin-bottom: 7px;
+    font-weight: 600;
+  }
+  .form-group select,
+  .form-group input[type="date"] {
+    width: 100%;
+    padding: 11px 13px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 13px;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .form-group select:focus,
+  .form-group input[type="date"]:focus { outline: none; border-color: var(--green); }
+  .date-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .toggle-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .toggle-btn.active { background: var(--black); border-color: var(--black); color: #fff; }
+  .toggle-btn:not(.active):hover { border-color: var(--green); color: var(--green); }
+
+  /* Historial table */
+  .historial-wrap { margin-top: 22px; }
+  .historial-title {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .historial-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .historial-table th {
+    text-align: left;
+    padding: 8px 10px;
+    color: var(--text2);
+    border-bottom: 2px solid var(--border);
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    background: var(--surface2);
+  }
+  .historial-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    color: var(--text);
+  }
+  .historial-table tr:last-child td { border-bottom: none; }
+  .historial-table tr:hover td { background: var(--surface2); }
+  .badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-p { background: #e8f8e7; color: #239420; }
+  .badge-c { background: #e8f4e8; color: #2d7a2a; }
+  .badge-pr { background: #edf7ed; color: #4a8c3f; }
+  .badge-ci { background: var(--black); color: #fff; }
+  .btn-del {
+    background: transparent;
+    border: none;
+    color: var(--gray3);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    transition: all .15s;
+  }
+  .btn-del:hover { background: var(--red-light); color: var(--red); }
+
+  /* ── DASHBOARD PAGE ── */
+  .dash-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .dash-controls label {
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dash-controls input[type="date"] {
+    padding: 7px 11px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+    transition: border-color .2s;
+  }
+  .dash-controls input[type="date"]:focus { outline: none; border-color: var(--green); }
+  .btn-semana {
+    padding: 7px 14px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-semana:hover { border-color: var(--green); color: var(--green); }
+  .btn-semana.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+  /* KPI cards row */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  @media (max-width: 900px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .kpi-card.k0::after { background: var(--green); }
+  .kpi-card.k1::after { background: var(--green2); }
+  .kpi-card.k2::after { background: var(--black); }
+  .kpi-card.k3::after { background: var(--green-dark); }
+  .kpi-icon {
+    font-size: 20px;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .kpi-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; font-weight: 700; }
+  .kpi-val {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 2px;
+    color: var(--black);
+  }
+  .kpi-sub { font-size: 11px; color: var(--gray2); }
+
+  /* Charts grid */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+  @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 22px;
+    box-shadow: var(--shadow);
+  }
+  .chart-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 3px;
+  }
+  .chart-sub { font-size: 11px; color: var(--text2); margin-bottom: 18px; }
+
+  /* Ranking table */
+  .ranking-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .ranking-table { width: 100%; border-collapse: collapse; }
+  .ranking-table th {
+    text-align: left;
+    padding: 10px 14px;
+    color: var(--text2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    border-bottom: 2px solid var(--border);
+    font-weight: 700;
+    background: var(--surface2);
+  }
+  .ranking-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    vertical-align: middle;
+    color: var(--text);
+  }
+  .ranking-table tr:last-child td { border-bottom: none; }
+  .ranking-table tr:hover td { background: var(--surface2); }
+  .rank-num {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    color: var(--gray2);
+    font-size: 13px;
+  }
+  .rank-1 td { background: var(--green-light) !important; }
+  .rank-2 td { background: var(--green2-light) !important; }
+  .conv-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .conv-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .conv-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--green), var(--green2));
+  }
+  .conv-pct { font-size: 12px; color: var(--text2); min-width: 38px; text-align: right; font-weight: 600; }
+
+  /* export btn */
+  .btn-export {
+    padding: 7px 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-export:hover { border-color: var(--green); color: var(--green); }
+
+  /* toast */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--green);
+    color: #fff;
+    padding: 13px 22px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all .3s;
+    pointer-events: none;
+    z-index: 999;
+    box-shadow: 0 4px 16px rgba(45,185,40,.35);
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { background: var(--red); box-shadow: 0 4px 16px rgba(214,61,61,.35); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray2);
+    font-size: 13px;
+  }
+  .empty-state .icon { font-size: 36px; margin-bottom: 10px; }
+
+  select option { background: #fff; color: #1a1a1a; }
+
+  .full-chart { grid-column: 1 / -1; }
+
+  .dash-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0 22px;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <span class="brand-dot"></span>
+    <span>Protección Familiar</span> — Actividad
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab" onclick="showPage('registro')" id="tab-registro">📋 Registro Diario</button>
+    <button class="nav-tab" onclick="showPage('dashboard')" id="tab-dashboard">📊 Dashboard</button>
+  </div>
+  <div class="nav-right">
+    <div class="current-leader-badge" id="leader-badge" style="display:none">
+      Líder: <strong id="leader-name-badge">—</strong>
+    </div>
+    <button class="btn-export" onclick="exportarExcel()">⬇ Exportar Excel</button>
+    <button class="btn-export" onclick="cambiarLider()" style="font-size:12px; padding:7px 14px;">↩ Cambiar líder</button>
+  </div>
+</nav>
+
+<!-- LOGIN -->
+<div id="page-login" class="page active">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">👨‍👩‍👧</div>
+    </div>
+    <h1><span>Protección Familiar</span></h1>
+    <p style="font-weight:700;font-size:13px;color:#5a5a5a;margin-bottom:6px">Grupo Iván Martínez</p>
+    <p>Sistema de Control de Actividad Comercial.<br>Selecciona tu nombre para ingresar.</p>
+    <select id="login-select">
+      <option value="">— Selecciona tu nombre —</option>
+    </select>
+    <button class="btn-primary" onclick="iniciarSesion()">Ingresar al sistema →</button>
+  </div>
+</div>
+
+<!-- REGISTRO -->
+<div id="page-registro" class="page">
+  <div class="section-title">Registro Diario</div>
+  <div class="section-sub" id="registro-fecha-label">Hoy: —</div>
+
+  <div class="registro-grid">
+
+    <!-- Actividad global -->
+    <div class="card">
+      <div class="card-title">
+        <div class="dot" style="background:var(--green)"></div>
+        Actividad del Día
+      </div>
+
+      <div class="date-row">
+        <span class="date-label">📅 Fecha:</span>
+        <div class="date-display" id="act-fecha-display">—</div>
+      </div>
+
+      <div class="activity-counters">
+        <div class="counter-item">
+          <div class="counter-label">Prospectos</div>
+          <div class="counter-control">
+            <button class="counter-btn" onclick="cambiarContador('prospectos', -1)">−</button>
+            <input type="number" class="counter-val" id="cnt-prospectos" value="0" min="0" oninput="sincronizarContador('prospectos', this)">
+            <button class="counter-btn" onclick="cambiarContador('prospectos', 1)">+</button>
+          </div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-label">Citas</div>
+          <div class="counter-control">
+            <button class="counter-btn" onclick="cambiarContador('citas', -1)">−</button>
+            <input type="number" class="counter-val" id="cnt-citas" value="0" min="0" oninput="sincronizarContador('citas', this)">
+            <button class="counter-btn" onclick="cambiarContador('citas', 1)">+</button>
+          </div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-label">Presentaciones</div>
+          <div class="counter-control">
+            <button class="counter-btn" onclick="cambiarContador('presentaciones', -1)">−</button>
+            <input type="number" class="counter-val" id="cnt-presentaciones" value="0" min="0" oninput="sincronizarContador('presentaciones', this)">
+            <button class="counter-btn" onclick="cambiarContador('presentaciones', 1)">+</button>
+          </div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-label">Cierres</div>
+          <div class="counter-control">
+            <button class="counter-btn" onclick="cambiarContador('cierres', -1)">−</button>
+            <input type="number" class="counter-val" id="cnt-cierres" value="0" min="0" oninput="sincronizarContador('cierres', this)">
+            <button class="counter-btn" onclick="cambiarContador('cierres', 1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-save" onclick="guardarActividad()">✓ Guardar Actividad del Día</button>
+
+      <!-- historial actividad -->
+      <div class="historial-wrap">
+        <div class="historial-title">Últimos registros guardados</div>
+        <table class="historial-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>P</th><th>C</th><th>Pr</th><th>Ci</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbl-actividad"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Acompañamientos -->
+    <div class="card">
+      <div class="card-title">
+        <div class="dot" style="background:var(--black)"></div>
+        Registrar Acompañamiento
+      </div>
+
+      <div class="form-group">
+        <label>Asesor acompañado</label>
+        <select id="sel-asesor">
+          <option value="">— Selecciona un asesor —</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha del acompañamiento</label>
+        <div class="date-toggle">
+          <button class="toggle-btn active" id="btn-hoy" onclick="setFechaAcomp('hoy')">📅 Hoy</button>
+          <button class="toggle-btn" id="btn-otra" onclick="setFechaAcomp('otra')">📆 Otra fecha</button>
+        </div>
+        <div id="acomp-fecha-hoy" class="date-display" style="margin-bottom:0">—</div>
+        <input type="date" id="acomp-fecha-input" style="display:none">
+      </div>
+
+      <button class="btn-save" style="background:var(--black);color:#fff;margin-top:8px" onclick="guardarAcomp()">✓ Registrar Acompañamiento</button>
+
+      <!-- historial acompañamientos -->
+      <div class="historial-wrap">
+        <div class="historial-title">Acompañamientos registrados</div>
+        <table class="historial-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Asesor</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbl-acomps"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px">
+    <div>
+      <div class="section-title">Dashboard Comparativo</div>
+      <div class="section-sub">Actividad por líder — todos los líderes</div>
+    </div>
+    <div class="dash-controls">
+      <button class="btn-semana active" id="btn-esta-semana" onclick="filtrarSemana()">Esta semana</button>
+      <label>Desde <input type="date" id="dash-desde" onchange="filtrarRango()"></label>
+      <label>Hasta <input type="date" id="dash-hasta" onchange="filtrarRango()"></label>
+    </div>
+  </div>
+
+  <!-- KPIs totales -->
+  <div class="kpi-row">
+    <div class="kpi-card k0">
+      <div class="kpi-label">Prospectos</div>
+      <div class="kpi-val" id="kpi-p" style="color:var(--accent4)">0</div>
+      <div class="kpi-sub">total período</div>
+    </div>
+    <div class="kpi-card k1">
+      <div class="kpi-label">Citas</div>
+      <div class="kpi-val" id="kpi-c" style="color:var(--accent)">0</div>
+      <div class="kpi-sub">total período</div>
+    </div>
+    <div class="kpi-card k2">
+      <div class="kpi-label">Presentaciones</div>
+      <div class="kpi-val" id="kpi-pr" style="color:var(--accent3)">0</div>
+      <div class="kpi-sub">total período</div>
+    </div>
+    <div class="kpi-card k3">
+      <div class="kpi-label">Cierres</div>
+      <div class="kpi-val" id="kpi-ci" style="color:var(--green)">0</div>
+      <div class="kpi-sub">total período</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Actividad por Líder</div>
+      <div class="chart-sub">Prospectos · Citas · Presentaciones · Cierres</div>
+      <canvas id="chart-barras" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Conversión por Etapa</div>
+      <div class="chart-sub">Ratio promedio entre etapas del proceso</div>
+      <canvas id="chart-conversion" height="220"></canvas>
+    </div>
+    <div class="chart-card full-chart">
+      <div class="chart-title">Tendencia Diaria</div>
+      <div class="chart-sub">Evolución de cierres por día en el período</div>
+      <canvas id="chart-tendencia" height="120"></canvas>
+    </div>
+  </div>
+
+  <!-- Ranking -->
+  <div class="ranking-card">
+    <div class="chart-title" style="margin-bottom:4px">Ranking de Líderes</div>
+    <div class="chart-sub">Ordenado por cierres totales en el período</div>
+    <table class="ranking-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Líder</th>
+          <th>Prospectos</th>
+          <th>Citas</th>
+          <th>Presentaciones</th>
+          <th>Cierres</th>
+          <th>Acompañamientos</th>
+          <th>Conv. Prosp→Cierre</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-ranking"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+const LIDERES_INFO = [
+  { nombre: "Viviana Marisol Hernández Pérez", key: "VIVIANA HERNANDEZ" },
+  { nombre: "Walter Ferro", key: "WALTER FERRO" },
+  { nombre: "Gabriela Del Carmen Rojas Quezada", key: "GABRIELA ROJAS" },
+  { nombre: "Humberto Cristian Barberis Abendaño", key: "HUMBERTO BARBERIS" },
+  { nombre: "Estefani Francisca González Morales", key: "ESTEFANI GONZALEZ" },
+  { nombre: "Camilo Jesus Medel Rojas", key: "CAMILO MEDEL" },
+  { nombre: "Raúl Alejandro Bustos Aguilera", key: "RAUL BUSTOS" },
+  { nombre: "Glenda Patricia Martínez Ortiz", key: "PATRICIA MARTINEZ" },
+  { nombre: "Sugey Mayelin Vivas Marquez", key: "SUGEY VIVAS" }
+];
+
+const ASESORES_POR_LIDER = {
+  "HUMBERTO BARBERIS": ["YOSKA SIMIRAMI CORDERO DE GARCIA","YESSICA GUERRERO BARRIOS","VIVIANA RAMIREZ MORALES","SALEM ARRIAGADA","RAYEN VIOLETA SOTO REDONDO","PAULA VIRGINIA ORTEGA RAMIREZ","BLANCA ELENA PARADA NAVARRETE","JOSE REINOSO","JOHANNA MARIA HUERTA OLAVE","JACQUELINE DE LAS MERCEDES VASQUEZ CASTRO","FRANCISCO JAVIER SANCHEZ CARRIZO","FRANCISCA PEREIRA AGUILAR"],
+  "WALTER FERRO": ["YORDANA BURGOS FERREIRA","ADRIANA ISABEL HERNANDEZ SANCHEZ","AGUEDA MARISOL VELAZQUEZ CABEZAS","ALEXANDER ZAHLHAAS ORTEGA","RODRIGO ANDRES ALVAREZ INOSTROZA","PATRICIO ANDRES JAQUE SOTO","ASDREYM CAROLINA GUILLEN VALDES","NELSON ALFREDO RODRIGUEZ PEREZ","BRANDON JACE PAYA MOLINA","MARCO ANTONIO ACOSTA MERINO","MARCELO CISTERNA LEON","JUAN CARLOS MACEDO GIL","IGNACIO ANTONIO ASTUDILLO CORREA","HERLIZ DANIELA REQUENA GAMBOA","FRANCESCA NICOLE SANCHEZ PACHECO","ENRIQUE RODRIGO VALDEBENITO TORRES","DANIELA ANDREA RIVERA HURTADO","DANIELA CASTRO VALDEBENITO","EDIXON MANUEL BASTIDAS VASQUEZ","DIEGO ALEJANDRO VASQUEZ FLORES"],
+  "VIVIANA HERNANDEZ": ["YOLANDA VIRGINIA FUENTES FIGUEROA","XIMENA DEL CARMEN LOPEZ ROZAS","WALTER FABRICIO SALAZAR LIMA","ALEJANDRA DEL CARMEN VERDUGO IBARRA","VERONICA MEDINA ARMIJO","VALERIA CECILIA MUNOZ VERA","SANTIAGO IVAN BARDI SANTIABANEZ","ANABEL DEL VALLE VELASQUEZ CARRENO","PEBLIS EDILIA ACEVEDO HERNANDEZ","GABRIELA KATALINA ARCOS SANCHEZ","FRANCHESCA ESTEFANIA VIDAL CASTILLO","DENNISSE ALONDRA RAMIREZ OSORIO"],
+  "GABRIELA ROJAS": ["YOHANY MARGARITA GONZALEZ ROJAS","ANA PATRICIA FUENTES IBACETA","PAMELA MONTANO","PABLO ANTONIO MORA ZUNIGA","NAYARET TATIANA PUGA MARCHANT","MARIA ELENA URRUTIA GALVEZ","MARIA CLARISA ARRANO MORALES","MARGARITA CRISTINA ROJAS QUEZADA","MANUEL ALEXANDER MUNOZ RIQUELME","LUIS ENRIQUE PINO FIGUEROA","CATHERINE DEL CARMEN PINCHEIRA CARTAJENA","LIDIA MONICA FLORES BRAVO","JUAN PABLO VILLACURA PAVEZ","CONSTANZA BELEN LOBOS PEDREROS","FRANCISCA ANDREA DELGADO LOYOLA","FELIPE IGNACIO CIFUENTES GONZALEZ","DIEGO RAUL SILVA FARIAS"],
+  "ESTEFANI GONZALEZ": ["YASMELY RAMONA VARGAS INFANTE","VICTORINO ALEJANDRO RIVEROS RUIZ","VERONICA CECILIA GONZALEZ MORALES","VALERY FRANCHESCA GONZALEZ MORALES","TOMAS PROVOSTE NAVARRETE","THIARE CATALINA CONTRERAS GAETE","RENATA ANTONINA CORREA SAAVEDRA","BETZABETH NICOLE CHACON QUINTEROS","CAMILA ANDREA CORTES ESPINOZA"],
+  "CAMILO MEDEL": ["ALEJANDRA EDITH OTELO ZUNIGA","VIVIANA ANDREA MUNOZ AHUMADA","RODRIGO IGNACIO CASTRO FIGUEROA","ANDREA VALESKA SAFFA ROMERO","RODOLFO SANTANA","ROCIO ALVAREZ","MICAELA TAIS VARGAS CASTILLO","MARY LUZ MONTENEGRO MONTERO","MARTIN IGNACIO ROJAS ZAPATA","MARIA ISABEL GUTIERREZ","CARLOS PATRICIO FREITAS VEGA","MARCELA ANTONIA VALDES BARRIOS","LUIS ALBERTO OSORES OSORES","CATALINA PATRICIA CABRERA HORMAZABAL","JUAN CARLOS JARAMILLO","JESUS RAMON VILLEGAS VILLAVICENCIO","FERNANDA SCARLET CUEVAS OLIVARES","FELIPE NICOLAS MUNOZ BARAHONA","EUGENIA GLORIA PUGH MUNOZ","DAVID ANTONIO ARANCIBIA CASTRO"],
+  "RAUL BUSTOS": ["VALENTINA ANDREA TORRES ROSALES","ANA MARIA GONZALEZ CANIU","RENATO ALEJANDRO FERNANDEZ ROJAS","MARTIN ANDRES ALIAGA DE LA FUENTE","CARLOS ROBERTO ACUNA GUINEZ","KEIBER YOVANNY FIGUEROA PENA","KARINA FERNANDA REYES BAROS","CLAUDIO ANTONIO ROJAS JARA","HECTOR ORLANDO ANGULO CUERO","CRISTOPHER ALEXIS ALVARADO FONSECA","FELIPE ANDRES POZO RODRIGUEZ","DANIEL ANDRES OLIVER IRIARTE","ELIANA GARCIA DIAZ"],
+  "SUGEY VIVAS": ["ALMENDRA MUNOZ FUENTES","STANKA VANNESA JOFRE MALLEGA","SEBASTIAN IGNACIO HERRERA ALTEMIR","RUBENNY YOAIRELIT MARIN MANZANO","MICHELLE LEIVA ARAYA","MARITZA ROXANA GATICA RIVAS","CAMILA PATRICIA GONZALEZ TRANAMIL","CARLA ELIZABETH GONZALEZ APABLAZA","CARLA GABRIELA FRANMELYS AZCARATE ARRIETA","MARIA ELENA MAUREIRA MALDONADO","LUISANA COROMOTO FIGUEROA BASTARDO","JESSE NAOMI HUARNEZ VERGARA","EFRAIN ENRIQUE MARIN ROJAS","DORYLEE MELANIA CARDENAS CASTILLO"],
+  "PATRICIA MARTINEZ": ["TAMARA PATRICIA ARAYA MARAMBIO","AMANDA VIVIANA VALDEZ CARAZA","SEBASTIAN ADOLFO ESCOBAR VITAR","MARTIN BENJAMIN FARIAS CORDOVA","MARIA ALEJANDRA CAMEJO ACUNA","JEANNETTE ARAYA MARAMBIO","DENISSE XIOMARA MARTINEZ TENORIO"]
+};
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let currentLeader = null;
+let contadores = { prospectos: 0, citas: 0, presentaciones: 0, cierres: 0 };
+let modoFechaAcomp = 'hoy';
+let charts = {};
+
+function hoyISO() {
+  return new Date().toISOString().split('T')[0];
+}
+function formatFecha(iso) {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function liderShort(key) {
+  const info = LIDERES_INFO.find(l => l.key === key);
+  return info ? info.nombre.split(' ').slice(0,2).join(' ') : key;
+}
+
+// ══════════════════════════════════════════════
+// GERENTES
+// ══════════════════════════════════════════════
+const GERENTES = [
+  { nombre: 'Ernesto Oliva',    key: 'ERNESTO OLIVA' },
+  { nombre: 'Ricardo Ramírez',  key: 'RICARDO RAMIREZ' }
+];
+
+function esGerente(key) {
+  return GERENTES.some(g => g.key === key);
+}
+
+// ══════════════════════════════════════════════
+// GITHUB STORAGE CONFIG
+// ══════════════════════════════════════════════
+const GH_OWNER  = 'slicitudesgim';
+const GH_REPO   = 'actividad_diaria';
+const GH_BRANCH = 'main';
+
+function ghToken() {
+  return localStorage.getItem('gh_token_ad') || '';
+}
+
+function ghHeaders() {
+  return {
+    'Authorization': `token ${ghToken()}`,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json'
+  };
+}
+
+function liderFilePath(liderKey, tipo) {
+  const safe = liderKey.toLowerCase()
+    .replace(/\s+/g, '_')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9_]/g, '');
+  return `datos/${tipo}/${safe}.json`;
+}
+
+const _sha = {};
+
+async function ghReadFile(path) {
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}&t=${Date.now()}`;
+  const res = await fetch(url, { headers: ghHeaders() });
+  if (res.status === 404) return { content: [], sha: null };
+  if (!res.ok) throw new Error(`GitHub error ${res.status}`);
+  const json = await res.json();
+  const decoded = JSON.parse(atob(json.content.replace(/\n/g, '')));
+  return { content: decoded, sha: json.sha };
+}
+
+async function ghWriteFile(path, data, sha) {
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+  const body = {
+    message: `update ${path}`,
+    content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))),
+    branch: GH_BRANCH
+  };
+  if (sha) body.sha = sha;
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: ghHeaders(),
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || `GitHub write error ${res.status}`);
+  }
+  return res.json();
+}
+
+async function getActividades() {
+  if (esGerente(currentLeader)) {
+    let all = [];
+    for (const l of LIDERES_INFO) {
+      try {
+        const { content } = await ghReadFile(liderFilePath(l.key, 'actividades'));
+        all = all.concat(content);
+      } catch(e) {}
+    }
+    return all;
+  }
+  const path = liderFilePath(currentLeader, 'actividades');
+  const { content, sha } = await ghReadFile(path);
+  _sha[path] = sha;
+  return content;
+}
+
+async function saveActividades(arr) {
+  if (esGerente(currentLeader)) {
+    toast('Los gerentes no pueden registrar actividad', true);
+    return;
+  }
+  const path = liderFilePath(currentLeader, 'actividades');
+  await ghWriteFile(path, arr, _sha[path] || null);
+  const { sha } = await ghReadFile(path);
+  _sha[path] = sha;
+}
+
+async function getAcomps() {
+  if (esGerente(currentLeader)) {
+    let all = [];
+    for (const l of LIDERES_INFO) {
+      try {
+        const { content } = await ghReadFile(liderFilePath(l.key, 'acomps'));
+        all = all.concat(content);
+      } catch(e) {}
+    }
+    return all;
+  }
+  const path = liderFilePath(currentLeader, 'acomps');
+  const { content, sha } = await ghReadFile(path);
+  _sha[path] = sha;
+  return content;
+}
+
+async function saveAcomps(arr) {
+  if (esGerente(currentLeader)) {
+    toast('Los gerentes no pueden registrar acompañamientos', true);
+    return;
+  }
+  const path = liderFilePath(currentLeader, 'acomps');
+  await ghWriteFile(path, arr, _sha[path] || null);
+  const { sha } = await ghReadFile(path);
+  _sha[path] = sha;
+}
+
+// ══════════════════════════════════════════════
+// TOKEN MODAL
+// ══════════════════════════════════════════════
+function mostrarModalToken() {
+  document.getElementById('modal-token').style.display = 'flex';
+}
+function cerrarModalToken() {
+  if (!ghToken()) { toast('Debes ingresar un token para continuar', true); return; }
+  document.getElementById('modal-token').style.display = 'none';
+}
+function guardarToken() {
+  const t = document.getElementById('input-token').value.trim();
+  if (!t) { toast('Ingresa el token primero', true); return; }
+  localStorage.setItem('gh_token_ad', t);
+  document.getElementById('modal-token').style.display = 'none';
+  toast('Token guardado ✓');
+  entrarSistema();
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+window.onload = () => {
+  const sel = document.getElementById('login-select');
+  LIDERES_INFO.forEach(l => {
+    const o = document.createElement('option');
+    o.value = l.key;
+    o.textContent = l.nombre;
+    sel.appendChild(o);
+  });
+  // Separador y gerentes
+  const sep = document.createElement('option');
+  sep.disabled = true;
+  sep.textContent = '── Gerentes ──';
+  sel.appendChild(sep);
+  GERENTES.forEach(g => {
+    const o = document.createElement('option');
+    o.value = g.key;
+    o.textContent = '👔 ' + g.nombre;
+    sel.appendChild(o);
+  });
+
+  document.getElementById('acomp-fecha-hoy').textContent = formatFecha(hoyISO());
+  document.getElementById('act-fecha-display').textContent = formatFecha(hoyISO());
+  document.getElementById('registro-fecha-label').textContent = `Hoy: ${formatFecha(hoyISO())}`;
+
+  const saved = sessionStorage.getItem('lider_activo');
+  if (saved && ghToken()) {
+    currentLeader = saved;
+    entrarSistema();
+  }
+
+  initDashDates();
+};
+
+function iniciarSesion() {
+  const sel = document.getElementById('login-select');
+  if (!sel.value) { toast('Selecciona tu nombre primero', true); return; }
+  currentLeader = sel.value;
+  sessionStorage.setItem('lider_activo', currentLeader);
+  if (!ghToken()) { mostrarModalToken(); return; }
+  entrarSistema();
+}
+
+async function entrarSistema() {
+  document.getElementById('page-login').classList.remove('active');
+
+  const badge = document.getElementById('leader-badge');
+  const badgeName = document.getElementById('leader-name-badge');
+  badge.style.display = 'flex';
+
+  if (esGerente(currentLeader)) {
+    const g = GERENTES.find(x => x.key === currentLeader);
+    badgeName.textContent = '👔 ' + (g ? g.nombre : currentLeader);
+    badge.style.background = 'rgba(255,200,0,0.15)';
+    badge.style.borderColor = 'rgba(255,200,0,0.4)';
+    // Ocultar pestaña registro
+    const tabReg = document.getElementById('tab-registro');
+    if (tabReg) tabReg.style.display = 'none';
+    showPage('dashboard');
+  } else {
+    const info = LIDERES_INFO.find(l => l.key === currentLeader);
+    badgeName.textContent = info ? info.nombre.split(' ').slice(0,2).join(' ') : currentLeader;
+    badge.style.background = '';
+    badge.style.borderColor = '';
+    const tabReg = document.getElementById('tab-registro');
+    if (tabReg) tabReg.style.display = '';
+
+    const sel = document.getElementById('sel-asesor');
+    sel.innerHTML = '<option value="">— Selecciona un asesor —</option>';
+    const asesores = ASESORES_POR_LIDER[currentLeader] || [];
+    asesores.sort().forEach(a => {
+      const o = document.createElement('option');
+      o.value = a; o.textContent = a;
+      sel.appendChild(o);
+    });
+
+    showPage('registro');
+    await renderTablaActividad();
+    await renderTablaAcomps();
+  }
+}
+
+function cambiarLider() {
+  currentLeader = null;
+  sessionStorage.removeItem('lider_activo');
+  document.getElementById('leader-badge').style.display = 'none';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-login').classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+}
+
+// ══════════════════════════════════════════════
+// PAGE NAV
+// ══════════════════════════════════════════════
+function showPage(name) {
+  if (!currentLeader && name !== 'login') { return; }
+  if (esGerente(currentLeader) && name === 'registro') return;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('tab-' + name)?.classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+}
+
+// ══════════════════════════════════════════════
+// ACTIVIDAD DIARIA
+// ══════════════════════════════════════════════
+function cambiarContador(tipo, delta) {
+  contadores[tipo] = Math.max(0, contadores[tipo] + delta);
+  document.getElementById('cnt-' + tipo).value = contadores[tipo];
+}
+
+function sincronizarContador(tipo, input) {
+  const v = parseInt(input.value) || 0;
+  contadores[tipo] = Math.max(0, v);
+  input.value = contadores[tipo];
+}
+
+async function guardarActividad() {
+  if (esGerente(currentLeader)) { toast('Los gerentes no pueden registrar actividad', true); return; }
+  if (contadores.prospectos + contadores.citas + contadores.presentaciones + contadores.cierres === 0) {
+    toast('Ingresa al menos un valor mayor a 0', true);
+    return;
+  }
+  toast('Guardando...', false);
+  try {
+    const fecha = hoyISO();
+    const actividades = await getActividades();
+    const idx = actividades.findIndex(a => a.lider === currentLeader && a.fecha === fecha);
+    const reg = { id: Date.now(), lider: currentLeader, fecha, ...contadores };
+    if (idx >= 0) actividades[idx] = reg;
+    else actividades.push(reg);
+    await saveActividades(actividades);
+    contadores = { prospectos: 0, citas: 0, presentaciones: 0, cierres: 0 };
+    ['prospectos','citas','presentaciones','cierres'].forEach(k => {
+      document.getElementById('cnt-' + k).value = '0';
+    });
+    toast('Actividad guardada correctamente ✓');
+    await renderTablaActividad();
+  } catch(e) {
+    toast('Error al guardar: ' + e.message, true);
+  }
+}
+
+async function renderTablaActividad() {
+  const tbody = document.getElementById('tbl-actividad');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:20px;font-size:13px">Cargando...</td></tr>';
+  try {
+    const data = (await getActividades()).filter(a => a.lider === currentLeader)
+      .sort((a,b) => b.fecha.localeCompare(a.fecha)).slice(0, 10);
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:20px;font-size:13px">Sin registros aún</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.map(r => `
+      <tr>
+        <td>${formatFecha(r.fecha)}</td>
+        <td><span class="badge badge-p">${r.prospectos}</span></td>
+        <td><span class="badge badge-c">${r.citas}</span></td>
+        <td><span class="badge badge-pr">${r.presentaciones}</span></td>
+        <td><span class="badge badge-ci">${r.cierres}</span></td>
+        <td><button class="btn-del" onclick="eliminarActividad(${r.id})">✕</button></td>
+      </tr>
+    `).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--red);padding:20px;font-size:13px">Error: ${e.message}</td></tr>`;
+  }
+}
+
+async function eliminarActividad(id) {
+  if (esGerente(currentLeader)) { toast('Los gerentes no pueden eliminar registros', true); return; }
+  try {
+    const arr = (await getActividades()).filter(a => a.id !== id);
+    await saveActividades(arr);
+    await renderTablaActividad();
+    toast('Registro eliminado');
+  } catch(e) {
+    toast('Error al eliminar: ' + e.message, true);
+  }
+}
+
+// ══════════════════════════════════════════════
+// ACOMPAÑAMIENTOS
+// ══════════════════════════════════════════════
+function setFechaAcomp(modo) {
+  modoFechaAcomp = modo;
+  document.getElementById('btn-hoy').classList.toggle('active', modo === 'hoy');
+  document.getElementById('btn-otra').classList.toggle('active', modo === 'otra');
+  document.getElementById('acomp-fecha-hoy').style.display = modo === 'hoy' ? 'block' : 'none';
+  document.getElementById('acomp-fecha-input').style.display = modo === 'otra' ? 'block' : 'none';
+}
+
+async function guardarAcomp() {
+  if (esGerente(currentLeader)) { toast('Los gerentes no pueden registrar acompañamientos', true); return; }
+  const asesor = document.getElementById('sel-asesor').value;
+  if (!asesor) { toast('Selecciona un asesor', true); return; }
+  let fecha;
+  if (modoFechaAcomp === 'hoy') {
+    fecha = hoyISO();
+  } else {
+    fecha = document.getElementById('acomp-fecha-input').value;
+    if (!fecha) { toast('Selecciona una fecha', true); return; }
+  }
+  toast('Guardando...', false);
+  try {
+    const acomps = await getAcomps();
+    acomps.push({ id: Date.now(), lider: currentLeader, asesor, fecha });
+    await saveAcomps(acomps);
+    document.getElementById('sel-asesor').value = '';
+    toast('Acompañamiento registrado ✓');
+    await renderTablaAcomps();
+  } catch(e) {
+    toast('Error al guardar: ' + e.message, true);
+  }
+}
+
+async function renderTablaAcomps() {
+  const tbody = document.getElementById('tbl-acomps');
+  tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text2);padding:20px;font-size:13px">Cargando...</td></tr>';
+  try {
+    const data = (await getAcomps()).filter(a => a.lider === currentLeader)
+      .sort((a,b) => b.fecha.localeCompare(a.fecha)).slice(0, 12);
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text2);padding:20px;font-size:13px">Sin acompañamientos aún</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.map(r => `
+      <tr>
+        <td>${formatFecha(r.fecha)}</td>
+        <td style="font-size:13px">${r.asesor}</td>
+        <td><button class="btn-del" onclick="eliminarAcomp(${r.id})">✕</button></td>
+      </tr>
+    `).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--red);padding:20px;font-size:13px">Error: ${e.message}</td></tr>`;
+  }
+}
+
+async function eliminarAcomp(id) {
+  if (esGerente(currentLeader)) { toast('Los gerentes no pueden eliminar registros', true); return; }
+  try {
+    const arr = (await getAcomps()).filter(a => a.id !== id);
+    await saveAcomps(arr);
+    await renderTablaAcomps();
+    toast('Acompañamiento eliminado');
+  } catch(e) {
+    toast('Error al eliminar: ' + e.message, true);
+  }
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+function initDashDates() {
+  const hoy = new Date();
+  const dia = hoy.getDay();
+  const diffLunes = dia === 0 ? -6 : 1 - dia;
+  const lunes = new Date(hoy); lunes.setDate(hoy.getDate() + diffLunes);
+  const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
+  document.getElementById('dash-desde').value = lunes.toISOString().split('T')[0];
+  document.getElementById('dash-hasta').value = domingo.toISOString().split('T')[0];
+}
+
+function filtrarSemana() {
+  initDashDates();
+  document.getElementById('btn-esta-semana').classList.add('active');
+  renderDashboard();
+}
+
+function filtrarRango() {
+  document.getElementById('btn-esta-semana').classList.remove('active');
+  renderDashboard();
+}
+
+function getDashFiltro() {
+  return {
+    desde: document.getElementById('dash-desde').value,
+    hasta: document.getElementById('dash-hasta').value
+  };
+}
+
+async function renderDashboard() {
+  document.getElementById('kpi-p').textContent = '...';
+  document.getElementById('kpi-c').textContent = '...';
+  document.getElementById('kpi-pr').textContent = '...';
+  document.getElementById('kpi-ci').textContent = '...';
+  try {
+    const { desde, hasta } = getDashFiltro();
+    const actividades = (await getActividades()).filter(a => a.fecha >= desde && a.fecha <= hasta);
+    const acomps = (await getAcomps()).filter(a => a.fecha >= desde && a.fecha <= hasta);
+
+  // Aggregate by leader
+  const byLider = {};
+  LIDERES_INFO.forEach(l => {
+    byLider[l.key] = { nombre: l.nombre, prospectos: 0, citas: 0, presentaciones: 0, cierres: 0, acomps: 0 };
+  });
+  actividades.forEach(a => {
+    if (byLider[a.lider]) {
+      byLider[a.lider].prospectos += a.prospectos;
+      byLider[a.lider].citas += a.citas;
+      byLider[a.lider].presentaciones += a.presentaciones;
+      byLider[a.lider].cierres += a.cierres;
+    }
+  });
+  acomps.forEach(a => { if (byLider[a.lider]) byLider[a.lider].acomps++; });
+
+  // KPIs totales
+  const totP = actividades.reduce((s,a) => s + a.prospectos, 0);
+  const totC = actividades.reduce((s,a) => s + a.citas, 0);
+  const totPr = actividades.reduce((s,a) => s + a.presentaciones, 0);
+  const totCi = actividades.reduce((s,a) => s + a.cierres, 0);
+  document.getElementById('kpi-p').textContent = totP;
+  document.getElementById('kpi-c').textContent = totC;
+  document.getElementById('kpi-pr').textContent = totPr;
+  document.getElementById('kpi-ci').textContent = totCi;
+
+  // Labels short
+  const liders = Object.values(byLider);
+  const labels = liders.map(l => l.nombre.split(' ').slice(0,2).join(' '));
+
+  // Colores
+  const COLORS = ['#7c6af5','#f5a623','#4ecdc4','#43d9a0','#e85d75','#58c8f0','#f7b731','#a29bfe','#fd79a8'];
+
+  // Chart barras
+  renderChart('chart-barras', 'bar', {
+    labels,
+    datasets: [
+      { label: 'Prospectos', data: liders.map(l=>l.prospectos), backgroundColor: 'rgba(45,185,40,.75)', borderRadius: 5 },
+      { label: 'Citas', data: liders.map(l=>l.citas), backgroundColor: 'rgba(141,198,63,.75)', borderRadius: 5 },
+      { label: 'Presentaciones', data: liders.map(l=>l.presentaciones), backgroundColor: 'rgba(35,148,32,.7)', borderRadius: 5 },
+      { label: 'Cierres', data: liders.map(l=>l.cierres), backgroundColor: 'rgba(26,26,26,.85)', borderRadius: 5 }
+    ]
+  }, {
+    plugins: { legend: { labels: { color: '#5a5a5a', boxWidth: 12, font: { size: 11 } } } },
+    scales: {
+      x: { ticks: { color: '#8a8f9a', font: { size: 10 } }, grid: { color: '#dde1e8' } },
+      y: { ticks: { color: '#8a8f9a' }, grid: { color: '#dde1e8' } }
+    }
+  });
+
+  // Chart conversión
+  const conv = [
+    { label: 'Citas / Prospectos', val: totP > 0 ? (totC/totP)*100 : 0 },
+    { label: 'Pres. / Citas', val: totC > 0 ? (totPr/totC)*100 : 0 },
+    { label: 'Cierres / Pres.', val: totPr > 0 ? (totCi/totPr)*100 : 0 },
+    { label: 'Cierres / Prosp.', val: totP > 0 ? (totCi/totP)*100 : 0 }
+  ];
+  renderChart('chart-conversion', 'bar', {
+    labels: conv.map(c=>c.label),
+    datasets: [{
+      label: 'Conversión %',
+      data: conv.map(c => +c.val.toFixed(1)),
+      backgroundColor: ['rgba(45,185,40,.8)','rgba(141,198,63,.8)','rgba(35,148,32,.8)','rgba(26,26,26,.85)'],
+      borderRadius: 7
+    }]
+  }, {
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#8a8f9a', callback: v => v + '%' }, grid: { color: '#dde1e8' }, max: 100 },
+      y: { ticks: { color: '#5a5a5a', font: { size: 11 } }, grid: { display: false } }
+    }
+  });
+
+  // Chart tendencia diaria
+  const fechaSet = {};
+  actividades.forEach(a => {
+    if (!fechaSet[a.fecha]) fechaSet[a.fecha] = 0;
+    fechaSet[a.fecha] += a.cierres;
+  });
+  const fechas = Object.keys(fechaSet).sort();
+  renderChart('chart-tendencia', 'line', {
+    labels: fechas.map(f => formatFecha(f)),
+    datasets: [{
+      label: 'Cierres',
+      data: fechas.map(f => fechaSet[f]),
+      borderColor: '#2db928',
+      backgroundColor: 'rgba(45,185,40,.08)',
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#2db928',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      pointRadius: 5
+    }]
+  }, {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#8a8f9a', font: { size: 10 } }, grid: { color: '#dde1e8' } },
+      y: { ticks: { color: '#8a8f9a' }, grid: { color: '#dde1e8' } }
+    }
+  });
+
+  // Ranking
+  const sorted = liders.sort((a,b) => b.cierres - a.cierres);
+  const tbody = document.getElementById('tbl-ranking');
+  if (sorted.every(l => l.cierres + l.prospectos + l.citas + l.presentaciones === 0)) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="icon">📭</div>Sin datos en este período</td></tr>';
+  } else {
+    const maxConv = Math.max(...sorted.map(l => l.prospectos > 0 ? (l.cierres/l.prospectos)*100 : 0), 1);
+    tbody.innerHTML = sorted.map((l, i) => {
+      const conv = l.prospectos > 0 ? ((l.cierres/l.prospectos)*100).toFixed(1) : '0.0';
+      const pct = parseFloat(conv);
+      return `<tr class="rank-${i+1}">
+        <td><span class="rank-num">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i+1}</span></td>
+        <td style="font-weight:500">${l.nombre.split(' ').slice(0,3).join(' ')}</td>
+        <td>${l.prospectos}</td>
+        <td>${l.citas}</td>
+        <td>${l.presentaciones}</td>
+        <td><strong style="color:var(--green-dark)">${l.cierres}</strong></td>
+        <td>${l.acomps}</td>
+        <td>
+          <div class="conv-bar-wrap">
+            <div class="conv-bar"><div class="conv-bar-fill" style="width:${Math.min(pct/maxConv*100,100)}%"></div></div>
+            <span class="conv-pct">${conv}%</span>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  } catch(e) {
+    toast('Error al cargar dashboard: ' + e.message, true);
+  }
+}
+
+function renderChart(id, type, data, options) {
+  if (charts[id]) { charts[id].destroy(); }
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type,
+    data,
+    options: {
+      responsive: true,
+      animation: { duration: 400 },
+      plugins: { legend: { labels: { color: '#5a5a5a' } } },
+      ...options
+    }
+  });
+}
+
+// ══════════════════════════════════════════════
+// EXPORT EXCEL
+// ══════════════════════════════════════════════
+async function exportarExcel() {
+  toast('Generando Excel...', false);
+  try {
+    const actividades = await getActividades();
+    const acomps = await getAcomps();
+
+  const wb = XLSX.utils.book_new();
+
+  // Hoja 1: Actividad
+  const actData = [['Líder','Fecha','Prospectos','Citas','Presentaciones','Cierres']];
+  actividades.sort((a,b) => a.fecha.localeCompare(b.fecha)).forEach(a => {
+    const info = LIDERES_INFO.find(l => l.key === a.lider);
+    actData.push([info ? info.nombre : a.lider, a.fecha, a.prospectos, a.citas, a.presentaciones, a.cierres]);
+  });
+  const ws1 = XLSX.utils.aoa_to_sheet(actData);
+  ws1['!cols'] = [{wch:35},{wch:12},{wch:14},{wch:10},{wch:16},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Actividad Diaria');
+
+  // Hoja 2: Acompañamientos
+  const acData = [['Líder','Asesor','Fecha']];
+  acomps.sort((a,b) => a.fecha.localeCompare(b.fecha)).forEach(a => {
+    const info = LIDERES_INFO.find(l => l.key === a.lider);
+    acData.push([info ? info.nombre : a.lider, a.asesor, a.fecha]);
+  });
+  const ws2 = XLSX.utils.aoa_to_sheet(acData);
+  ws2['!cols'] = [{wch:35},{wch:45},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Acompañamientos');
+
+  // Hoja 3: Resumen por líder
+  const { desde, hasta } = getDashFiltro();
+  const filtAct = actividades.filter(a => a.fecha >= desde && a.fecha <= hasta);
+  const filtAc = acomps.filter(a => a.fecha >= desde && a.fecha <= hasta);
+  const resData = [['Líder','Prospectos','Citas','Presentaciones','Cierres','Acompañamientos','Conv P→C %']];
+  LIDERES_INFO.forEach(l => {
+    const actsL = filtAct.filter(a => a.lider === l.key);
+    const p = actsL.reduce((s,a)=>s+a.prospectos,0);
+    const c = actsL.reduce((s,a)=>s+a.citas,0);
+    const pr = actsL.reduce((s,a)=>s+a.presentaciones,0);
+    const ci = actsL.reduce((s,a)=>s+a.cierres,0);
+    const ac = filtAc.filter(a => a.lider === l.key).length;
+    const conv = p > 0 ? ((ci/p)*100).toFixed(1) : '0.0';
+    resData.push([l.nombre, p, c, pr, ci, ac, conv + '%']);
+  });
+  const ws3 = XLSX.utils.aoa_to_sheet(resData);
+  ws3['!cols'] = [{wch:35},{wch:13},{wch:10},{wch:16},{wch:12},{wch:18},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Resumen por Líder');
+
+  const hoy = hoyISO();
+  XLSX.writeFile(wb, `Control_Actividad_${hoy}.xlsx`);
+  toast('Excel exportado correctamente ✓');
+  } catch(e) {
+    toast('Error al exportar: ' + e.message, true);
+  }
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+let toastTimer;
+function toast(msg, error = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (error ? ' error' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, 3000);
+}
+</script>
+
+<!-- ══ MODAL TOKEN ══════════════════════════════════════════ -->
+<div id="modal-token" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:40px 36px;width:500px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.2);">
+    <div style="font-family:'Montserrat',sans-serif;font-size:18px;font-weight:800;color:#1a1a1a;margin-bottom:6px">🔑 Token de acceso GitHub</div>
+    <p style="font-size:13px;color:#5a5a5a;margin-bottom:18px;line-height:1.6">Para leer y guardar datos en GitHub necesitas un <strong>Personal Access Token</strong>. Se guarda solo en este navegador.</p>
+
+    <div style="background:#f4f6f8;border-radius:8px;padding:14px 16px;margin-bottom:18px;font-size:12px;color:#5a5a5a;line-height:1.9">
+      <strong style="color:#1a1a1a">Cómo crear tu token (solo la primera vez):</strong><br>
+      1. Ve a <strong>github.com → Settings → Developer settings</strong><br>
+      2. Clic en <strong>Personal access tokens → Tokens (classic)</strong><br>
+      3. Clic en <strong>Generate new token (classic)</strong><br>
+      4. Nombre: <code style="background:#e0e4ea;padding:1px 6px;border-radius:3px">actividad-diaria</code><br>
+      5. Activa el permiso: <code style="background:#e0e4ea;padding:1px 6px;border-radius:3px">repo</code><br>
+      6. Clic en <strong>Generate token</strong> y copia el valor<br>
+      <br>
+      <strong style="color:#1a1a1a">Gerentes:</strong> usar permiso <code style="background:#e0e4ea;padding:1px 6px;border-radius:3px">repo</code> (solo lectura activa automáticamente)
+    </div>
+
+    <label style="display:block;font-size:11px;color:#8a8f9a;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:7px">Pega tu token aquí</label>
+    <input id="input-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+      style="width:100%;padding:12px 14px;border:1.5px solid #dde1e8;border-radius:8px;font-size:13px;font-family:monospace;margin-bottom:16px;outline:none;box-sizing:border-box;"
+      onfocus="this.style.borderColor='#2db928'" onblur="this.style.borderColor='#dde1e8'">
+
+    <button onclick="guardarToken()"
+      style="width:100%;padding:13px;background:#2db928;border:none;border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;">
+      ✓ Guardar y continuar
+    </button>
+    <p style="font-size:11px;color:#b8bcc8;text-align:center;margin-top:12px">El token se guarda únicamente en este navegador. Nadie más puede verlo.</p>
+  </div>
+</div>
+
+</body>
+</html>
