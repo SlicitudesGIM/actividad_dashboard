@@ -876,15 +876,15 @@
 // DATA
 // ══════════════════════════════════════════════
 const LIDERES_INFO = [
-  { nombre: "Viviana Marisol Hernández Pérez",     key: "VIVIANA HERNANDEZ",  token: "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" },
-  { nombre: "Walter Ferro",                        key: "WALTER FERRO",       token: "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" },
-  { nombre: "Gabriela Del Carmen Rojas Quezada",   key: "GABRIELA ROJAS",     token: "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" },
-  { nombre: "Humberto Cristian Barberis Abendaño", key: "HUMBERTO BARBERIS",  token: "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" },
-  { nombre: "Estefani Francisca González Morales", key: "ESTEFANI GONZALEZ",  token: "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" },
-  { nombre: "Camilo Jesus Medel Rojas",            key: "CAMILO MEDEL",       token: "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" },
-  { nombre: "Raúl Alejandro Bustos Aguilera",      key: "RAUL BUSTOS",        token: "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" },
-  { nombre: "Glenda Patricia Martínez Ortiz",      key: "PATRICIA MARTINEZ",  token: "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" },
-  { nombre: "Sugey Mayelin Vivas Marquez",         key: "SUGEY VIVAS",        token: "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" }
+  { nombre: "Viviana Marisol Hernández Pérez",     key: "VIVIANA HERNANDEZ",  gh: "actividad-viviana-hernandez" },
+  { nombre: "Walter Ferro",                        key: "WALTER FERRO",       gh: "actividad-walter-ferro" },
+  { nombre: "Gabriela Del Carmen Rojas Quezada",   key: "GABRIELA ROJAS",     gh: "actividad-gabriela-rojas" },
+  { nombre: "Humberto Cristian Barberis Abendaño", key: "HUMBERTO BARBERIS",  gh: "actividad-humberto-barberis" },
+  { nombre: "Estefani Francisca González Morales", key: "ESTEFANI GONZALEZ",  gh: "actividad-estefani-gonzalez" },
+  { nombre: "Camilo Jesus Medel Rojas",            key: "CAMILO MEDEL",       gh: "actividad-camilo-medel" },
+  { nombre: "Raúl Alejandro Bustos Aguilera",      key: "RAUL BUSTOS",        gh: "actividad-raul-bustos" },
+  { nombre: "Glenda Patricia Martínez Ortiz",      key: "PATRICIA MARTINEZ",  gh: "actividad-patricia-martinez" },
+  { nombre: "Sugey Mayelin Vivas Marquez",         key: "SUGEY VIVAS",        gh: "actividad-sugey-vivas" }
 ];
 
 const ASESORES_POR_LIDER = {
@@ -924,8 +924,8 @@ function liderShort(key) {
 // GERENTES
 // ══════════════════════════════════════════════
 const GERENTES = [
-  { nombre: 'Ernesto Oliva',   key: 'ERNESTO OLIVA',   token: "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" },
-  { nombre: 'Ricardo Ramírez', key: 'RICARDO RAMIREZ',  token: "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" }
+  { nombre: 'Ernesto Oliva',   key: 'ERNESTO OLIVA',   gh: 'actividad-gerente-ernesto' },
+  { nombre: 'Ricardo Ramírez', key: 'RICARDO RAMIREZ',  gh: 'actividad-gerente-ricardo' }
 ];
 
 function esGerente(key) {
@@ -940,13 +940,8 @@ const GH_REPO   = 'actividad_diaria';
 const GH_BRANCH = 'main';
 
 function ghToken() {
-  // Primero intenta token ya autenticado en sesión
-  if (currentLeader) {
-    const all = [...LIDERES_INFO, ...GERENTES];
-    const info = all.find(l => l.key === currentLeader);
-    if (info) return info.token;
-  }
-  return '';
+  if (!currentLeader) return '';
+  return sessionStorage.getItem('gh_token_' + currentLeader) || '';
 }
 
 function ghHeaders() {
@@ -1054,7 +1049,7 @@ async function saveAcomps(arr) {
 }
 
 // ══════════════════════════════════════════════
-// MODAL DE ACCESO (token como clave)
+// MODAL DE ACCESO — validación vía GitHub API
 // ══════════════════════════════════════════════
 let _pendingLeaderKey = null;
 
@@ -1062,10 +1057,11 @@ function mostrarModalToken(leaderKey) {
   _pendingLeaderKey = leaderKey;
   const all = [...LIDERES_INFO, ...GERENTES];
   const info = all.find(l => l.key === leaderKey);
-  const nombre = info ? info.nombre : leaderKey;
-  document.getElementById('modal-token-nombre').textContent = nombre;
+  document.getElementById('modal-nombre-display').textContent = info ? info.nombre : leaderKey;
   document.getElementById('input-token').value = '';
   document.getElementById('token-error').style.display = 'none';
+  document.getElementById('modal-token-btn').textContent = '✓ Ingresar';
+  document.getElementById('modal-token-btn').disabled = false;
   document.getElementById('modal-token').style.display = 'flex';
   setTimeout(() => document.getElementById('input-token').focus(), 100);
 }
@@ -1073,32 +1069,62 @@ function mostrarModalToken(leaderKey) {
 function cerrarModalToken() {
   document.getElementById('modal-token').style.display = 'none';
   _pendingLeaderKey = null;
-  // Volver a selección
   document.getElementById('login-select').value = '';
 }
 
-function guardarToken() {
+async function guardarToken() {
   const t = document.getElementById('input-token').value.trim();
-  if (!t) { document.getElementById('token-error').textContent = 'Ingresa tu clave de acceso'; document.getElementById('token-error').style.display = 'block'; return; }
-  
-  // Validar que el token ingresado coincide con el token del líder seleccionado
-  const all = [...LIDERES_INFO, ...GERENTES];
-  const info = all.find(l => l.key === _pendingLeaderKey);
-  if (!info || t !== info.token) {
-    document.getElementById('token-error').textContent = '❌ Clave incorrecta. Intenta nuevamente.';
-    document.getElementById('token-error').style.display = 'block';
-    document.getElementById('input-token').value = '';
-    document.getElementById('input-token').focus();
+  if (!t) {
+    mostrarErrorToken('Ingresa tu clave de acceso.');
     return;
   }
-  
-  // Autenticado correctamente
-  currentLeader = _pendingLeaderKey;
-  sessionStorage.setItem('lider_activo', currentLeader);
-  document.getElementById('modal-token').style.display = 'none';
-  _pendingLeaderKey = null;
-  toast('Acceso autorizado ✓');
-  entrarSistema();
+  const btn = document.getElementById('modal-token-btn');
+  btn.textContent = 'Verificando...';
+  btn.disabled = true;
+  document.getElementById('token-error').style.display = 'none';
+
+  try {
+    // Validar token contra GitHub API — obtener el login del usuario
+    const res = await fetch('https://api.github.com/user', {
+      headers: { 'Authorization': `token ${t}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if (!res.ok) {
+      mostrarErrorToken('Token inválido o sin acceso a GitHub (401).');
+      btn.textContent = '✓ Ingresar'; btn.disabled = false;
+      return;
+    }
+    const ghUser = await res.json();
+    const login = (ghUser.login || '').toLowerCase();
+
+    // Verificar que el login corresponde al líder seleccionado
+    const all = [...LIDERES_INFO, ...GERENTES];
+    const info = all.find(l => l.key === _pendingLeaderKey);
+    if (!info || login !== info.gh.toLowerCase()) {
+      mostrarErrorToken(`Este token no corresponde a ${info ? info.nombre : _pendingLeaderKey}. Verifica que estás usando tu propia clave.`);
+      btn.textContent = '✓ Ingresar'; btn.disabled = false;
+      return;
+    }
+
+    // ✓ Autenticado — guardar token en sessionStorage ligado al líder
+    currentLeader = _pendingLeaderKey;
+    sessionStorage.setItem('lider_activo', currentLeader);
+    sessionStorage.setItem('gh_token_' + currentLeader, t);
+    document.getElementById('modal-token').style.display = 'none';
+    _pendingLeaderKey = null;
+    toast('Acceso autorizado ✓');
+    entrarSistema();
+  } catch(e) {
+    mostrarErrorToken('Error de red. Verifica tu conexión.');
+    btn.textContent = '✓ Ingresar'; btn.disabled = false;
+  }
+}
+
+function mostrarErrorToken(msg) {
+  const el = document.getElementById('token-error');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+  document.getElementById('input-token').value = '';
+  document.getElementById('input-token').focus();
 }
 
 // ══════════════════════════════════════════════
@@ -1132,7 +1158,8 @@ window.onload = () => {
   if (saved) {
     const all = [...LIDERES_INFO, ...GERENTES];
     const info = all.find(l => l.key === saved);
-    if (info) {
+    const token = sessionStorage.getItem('gh_token_' + saved);
+    if (info && token) {
       currentLeader = saved;
       entrarSistema();
     }
@@ -1187,12 +1214,14 @@ async function entrarSistema() {
 }
 
 function cambiarLider() {
+  if (currentLeader) sessionStorage.removeItem('gh_token_' + currentLeader);
   currentLeader = null;
   sessionStorage.removeItem('lider_activo');
   document.getElementById('leader-badge').style.display = 'none';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-login').classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('login-select').value = '';
 }
 
 // ══════════════════════════════════════════════
@@ -1619,32 +1648,32 @@ function toast(msg, error = false) {
 <!-- ══ MODAL ACCESO ══════════════════════════════════════════ -->
 <div id="modal-token" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:18px;padding:44px 40px;width:460px;max-width:95vw;box-shadow:0 12px 50px rgba(0,0,0,.25);text-align:center;">
-    
-    <div style="width:60px;height:60px;background:linear-gradient(135deg,#2db928,#8dc63f);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:18px;box-shadow:0 4px 16px rgba(45,185,40,.3)">🔐</div>
-    
-    <div style="font-family:'Montserrat',sans-serif;font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:6px">Verificación de acceso</div>
-    <p style="font-size:13px;color:#8a8f9a;margin-bottom:6px">Ingresando como:</p>
-    <div id="modal-token-nombre" style="font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;color:#2db928;margin-bottom:24px;padding:8px 18px;background:#e8f8e7;border-radius:20px;display:inline-block"></div>
 
-    <label style="display:block;font-size:11px;color:#8a8f9a;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px;text-align:left">🔑 Clave de acceso personal</label>
-    <input id="input-token" type="password" placeholder="Ingresa tu clave de acceso..."
-      style="width:100%;padding:13px 16px;border:1.5px solid #dde1e8;border-radius:10px;font-size:14px;font-family:'Open Sans',sans-serif;margin-bottom:10px;outline:none;box-sizing:border-box;transition:border-color .2s;"
+    <div style="width:60px;height:60px;background:linear-gradient(135deg,#2db928,#8dc63f);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:18px;box-shadow:0 4px 16px rgba(45,185,40,.3)">🔐</div>
+
+    <div style="font-family:'Montserrat',sans-serif;font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:6px">Verificación de acceso</div>
+    <p style="font-size:13px;color:#8a8f9a;margin-bottom:8px">Ingresando como:</p>
+    <div id="modal-nombre-display" style="font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;color:#2db928;margin-bottom:24px;padding:8px 18px;background:#e8f8e7;border-radius:20px;display:inline-block"></div>
+
+    <label style="display:block;font-size:11px;color:#8a8f9a;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px;text-align:left">🔑 Token personal de GitHub</label>
+    <input id="input-token" type="password" placeholder="github_pat_xxxxxxxxxxxxxxxx"
+      style="width:100%;padding:13px 16px;border:1.5px solid #dde1e8;border-radius:10px;font-size:13px;font-family:monospace;margin-bottom:10px;outline:none;box-sizing:border-box;transition:border-color .2s;"
       onfocus="this.style.borderColor='#2db928'" onblur="this.style.borderColor='#dde1e8'"
       onkeydown="if(event.key==='Enter') guardarToken()">
-    
-    <div id="token-error" style="display:none;background:#fdecea;color:#d63d3d;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:12px;text-align:left"></div>
 
-    <button onclick="guardarToken()"
+    <div id="token-error" style="display:none;background:#fdecea;color:#d63d3d;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:12px;text-align:left;line-height:1.5"></div>
+
+    <button id="modal-token-btn" onclick="guardarToken()"
       style="width:100%;padding:14px;background:#2db928;border:none;border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:background .2s;margin-bottom:10px;"
       onmouseover="this.style.background='#239420'" onmouseout="this.style.background='#2db928'">
-      ✓ Ingresar al sistema
+      ✓ Ingresar
     </button>
     <button onclick="cerrarModalToken()"
       style="width:100%;padding:10px;background:transparent;border:1.5px solid #dde1e8;border-radius:10px;color:#8a8f9a;font-family:'Open Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;"
       onmouseover="this.style.borderColor='#b8bcc8';this.style.color='#5a5a5a'" onmouseout="this.style.borderColor='#dde1e8';this.style.color='#8a8f9a'">
       ← Volver a selección
     </button>
-    <p style="font-size:11px;color:#b8bcc8;margin-top:14px">Tu clave es tu token personal de GitHub.<br>No la compartas con nadie.</p>
+    <p style="font-size:11px;color:#b8bcc8;margin-top:14px">Tu token se verifica contra GitHub y se guarda solo durante esta sesión del navegador.</p>
   </div>
 </div>
 
