@@ -997,14 +997,12 @@ async function ghWriteFile(path, data, sha) {
 
 async function getActividades() {
   if (esGerente(currentLeader)) {
-    let all = [];
-    for (const l of LIDERES_INFO) {
-      try {
-        const { content } = await ghReadFile(liderFilePath(l.key, 'actividades'));
-        all = all.concat(content);
-      } catch(e) {}
-    }
-    return all;
+    const results = await Promise.allSettled(
+      LIDERES_INFO.map(l => ghReadFile(liderFilePath(l.key, 'actividades')))
+    );
+    return results
+      .filter(r => r.status === 'fulfilled')
+      .flatMap(r => r.value.content || []);
   }
   const path = liderFilePath(currentLeader, 'actividades');
   const { content, sha } = await ghReadFile(path);
@@ -1025,14 +1023,12 @@ async function saveActividades(arr) {
 
 async function getAcomps() {
   if (esGerente(currentLeader)) {
-    let all = [];
-    for (const l of LIDERES_INFO) {
-      try {
-        const { content } = await ghReadFile(liderFilePath(l.key, 'acomps'));
-        all = all.concat(content);
-      } catch(e) {}
-    }
-    return all;
+    const results = await Promise.allSettled(
+      LIDERES_INFO.map(l => ghReadFile(liderFilePath(l.key, 'acomps')))
+    );
+    return results
+      .filter(r => r.status === 'fulfilled')
+      .flatMap(r => r.value.content || []);
   }
   const path = liderFilePath(currentLeader, 'acomps');
   const { content, sha } = await ghReadFile(path);
@@ -1145,6 +1141,8 @@ window.onload = () => {
   document.getElementById('act-fecha-display').textContent = formatFecha(hoyISO());
   document.getElementById('registro-fecha-label').textContent = `Hoy: ${formatFecha(hoyISO())}`;
 
+  initDashDates();
+
   const saved = sessionStorage.getItem('lider_activo');
   if (saved) {
     const all = [...LIDERES_INFO, ...GERENTES];
@@ -1154,7 +1152,6 @@ window.onload = () => {
     }
   }
 
-  initDashDates();
 };
 
 function iniciarSesion() {
