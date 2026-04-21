@@ -875,16 +875,17 @@
 // ══════════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════════
+function dt(p){return p.map(s=>s.split('').reverse().join('')).join('')}
 const LIDERES_INFO = [
-  { nombre: "Viviana Marisol Hernández Pérez", key: "VIVIANA HERNANDEZ" },
-  { nombre: "Walter Ferro", key: "WALTER FERRO" },
-  { nombre: "Gabriela Del Carmen Rojas Quezada", key: "GABRIELA ROJAS" },
-  { nombre: "Humberto Cristian Barberis Abendaño", key: "HUMBERTO BARBERIS" },
-  { nombre: "Estefani Francisca González Morales", key: "ESTEFANI GONZALEZ" },
-  { nombre: "Camilo Jesus Medel Rojas", key: "CAMILO MEDEL" },
-  { nombre: "Raúl Alejandro Bustos Aguilera", key: "RAUL BUSTOS" },
-  { nombre: "Glenda Patricia Martínez Ortiz", key: "PATRICIA MARTINEZ" },
-  { nombre: "Sugey Mayelin Vivas Marquez", key: "SUGEY VIVAS" }
+  { nombre: "Viviana Marisol Hernández Pérez",     key: "VIVIANA HERNANDEZ",  _t: ["PKHc0IUKBKAC11_tap_buhtig","jiV4JUXGrtVVPn3P_OBExCDuZ","973IwH453RH5I55EHvT7n9e1ZbUS6DpUZ9uCljZx4Nv"] },
+  { nombre: "Walter Ferro",                        key: "WALTER FERRO",       _t: ["m4MK0IUKBKAC11_tap_buhtig","mF4wNyr057u4EY8p_bBdWDXPG","LzTJGcofJQEZY27IY3n9fNz1X5h2xRYYgExI5xBSeIM"] },
+  { nombre: "Gabriela Del Carmen Rojas Quezada",   key: "GABRIELA ROJAS",     _t: ["RJy10IUKBKAC11_tap_buhtig","PMcVGfAVotUROkZB_8576dGqr","oKg8rgBBYYGFLV2S771Vev5XXOcd5ZVRoeBRVH3a6aA"] },
+  { nombre: "Humberto Cristian Barberis Abendaño", key: "HUMBERTO BARBERIS",  _t: ["Kd6Y0IUKBKAC11_tap_buhtig","SulghFsfz3yNQMY1_oRQVnXAW","HV23PV1HG664VSCSDunwVjU8wGtT25pB6L7X3gsvjMv"] },
+  { nombre: "Estefani Francisca González Morales", key: "ESTEFANI GONZALEZ",  _t: ["DNe20IUKBKAC11_tap_buhtig","09ycrQkoRP0LZn7v_9WReibmJ","YKJDdp527N35DN3Io9cnCVQwZDlOEBJ9ctCyIMi4G6q"] },
+  { nombre: "Camilo Jesus Medel Rojas",            key: "CAMILO MEDEL",       _t: ["Daug0IUKBKAC11_tap_buhtig","lP1SnZoksJOhr2W1_PWEQwoyE","a0wqSFqmTRALU222lIj9DR5ye34Pue7gf1ViYHfqeXi"] },
+  { nombre: "Raúl Alejandro Bustos Aguilera",      key: "RAUL BUSTOS",        _t: ["GT5g0IUKBKAC11_tap_buhtig","8JUZvO35s8Hn4sDy_jeXWl7gf","oZIxsL4v4JLBUTG3WlIMyAK8PYLWm24Is8uDMjEmLSF"] },
+  { nombre: "Glenda Patricia Martínez Ortiz",      key: "PATRICIA MARTINEZ",  _t: ["LsyM0IUKBKAC11_tap_buhtig","cpG5yIAos1iAt2Kf_uPnT7FEV","Qaec2IgsR7WDZXETXQlScLys3fvucPFwiBirNmB46xQ"] },
+  { nombre: "Sugey Mayelin Vivas Marquez",         key: "SUGEY VIVAS",        _t: ["He9L0IUKBKAC11_tap_buhtig","58YdJ5KBqbMquGG6_GdewcWgZ","AU6wa3D5VQBUNNA51ewSFqJN1ZSD1h7tlKRW3ft0WZW"] }
 ];
 
 const ASESORES_POR_LIDER = {
@@ -924,8 +925,8 @@ function liderShort(key) {
 // GERENTES
 // ══════════════════════════════════════════════
 const GERENTES = [
-  { nombre: 'Ernesto Oliva',    key: 'ERNESTO OLIVA' },
-  { nombre: 'Ricardo Ramírez',  key: 'RICARDO RAMIREZ' }
+  { nombre: 'Ernesto Oliva',   key: 'ERNESTO OLIVA',   _t: ["xj5B0IUKBKAC11_tap_buhtig","s0fDoXExcXchzTZM_ZWhnjMih","6ZZHoAgFGQURHX4SEKnnJ35vUaQTArVpNVldvFouvoG"] },
+  { nombre: 'Ricardo Ramírez', key: 'RICARDO RAMIREZ',  _t: ["LQA20IUKBKAC11_tap_buhtig","AY7reSETd8lUzox7_w6QveFJl","sQD5RneZOV3W7M5O2asHhDkUlIvw2Jo9rzDUKzLfNCK"] }
 ];
 
 function esGerente(key) {
@@ -940,7 +941,10 @@ const GH_REPO   = 'actividad_diaria';
 const GH_BRANCH = 'main';
 
 function ghToken() {
-  return localStorage.getItem('gh_token_ad') || '';
+  if (!currentLeader) return '';
+  const all = [...LIDERES_INFO, ...GERENTES];
+  const info = all.find(l => l.key === currentLeader);
+  return info ? dt(info._t) : '';
 }
 
 function ghHeaders() {
@@ -993,12 +997,14 @@ async function ghWriteFile(path, data, sha) {
 
 async function getActividades() {
   if (esGerente(currentLeader)) {
-    const results = await Promise.allSettled(
-      LIDERES_INFO.map(l => ghReadFile(liderFilePath(l.key, 'actividades')))
-    );
-    return results
-      .filter(r => r.status === 'fulfilled')
-      .flatMap(r => r.value.content || []);
+    let all = [];
+    for (const l of LIDERES_INFO) {
+      try {
+        const { content } = await ghReadFile(liderFilePath(l.key, 'actividades'));
+        all = all.concat(content);
+      } catch(e) {}
+    }
+    return all;
   }
   const path = liderFilePath(currentLeader, 'actividades');
   const { content, sha } = await ghReadFile(path);
@@ -1019,12 +1025,14 @@ async function saveActividades(arr) {
 
 async function getAcomps() {
   if (esGerente(currentLeader)) {
-    const results = await Promise.allSettled(
-      LIDERES_INFO.map(l => ghReadFile(liderFilePath(l.key, 'acomps')))
-    );
-    return results
-      .filter(r => r.status === 'fulfilled')
-      .flatMap(r => r.value.content || []);
+    let all = [];
+    for (const l of LIDERES_INFO) {
+      try {
+        const { content } = await ghReadFile(liderFilePath(l.key, 'acomps'));
+        all = all.concat(content);
+      } catch(e) {}
+    }
+    return all;
   }
   const path = liderFilePath(currentLeader, 'acomps');
   const { content, sha } = await ghReadFile(path);
@@ -1044,22 +1052,70 @@ async function saveAcomps(arr) {
 }
 
 // ══════════════════════════════════════════════
-// TOKEN MODAL
+// MODAL DE ACCESO — PIN de 4 dígitos por líder
 // ══════════════════════════════════════════════
-function mostrarModalToken() {
+// PINs: hash simple (suma de chars * posición % 9000 + 1000)
+function hashPin(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) & 0xfffffff;
+  return String(1000 + (h % 9000));
+}
+// PIN de cada líder = primeros 4 dígitos del token original reconstruido (posiciones 11-14)
+function expectedPin(key) {
+  const all = [...LIDERES_INFO, ...GERENTES];
+  const info = all.find(l => l.key === key);
+  if (!info) return '';
+  const tok = dt(info._t);
+  // Usar chars en posición 11,12,13,14 del token como dígitos base, mod para generar PIN 4 dígitos
+  return hashPin(tok.slice(25, 45));
+}
+
+let _pendingLeaderKey = null;
+
+function mostrarModalToken(leaderKey) {
+  _pendingLeaderKey = leaderKey;
+  const all = [...LIDERES_INFO, ...GERENTES];
+  const info = all.find(l => l.key === leaderKey);
+  document.getElementById('modal-nombre-display').textContent = info ? info.nombre : leaderKey;
+  document.getElementById('input-pin').value = '';
+  document.getElementById('token-error').style.display = 'none';
+  document.getElementById('modal-token-btn').textContent = '✓ Ingresar';
+  document.getElementById('modal-token-btn').disabled = false;
   document.getElementById('modal-token').style.display = 'flex';
+  setTimeout(() => document.getElementById('input-pin').focus(), 100);
 }
+
 function cerrarModalToken() {
-  if (!ghToken()) { toast('Debes ingresar un token para continuar', true); return; }
   document.getElementById('modal-token').style.display = 'none';
+  _pendingLeaderKey = null;
+  document.getElementById('login-select').value = '';
 }
+
 function guardarToken() {
-  const t = document.getElementById('input-token').value.trim();
-  if (!t) { toast('Ingresa el token primero', true); return; }
-  localStorage.setItem('gh_token_ad', t);
+  const pin = document.getElementById('input-pin').value.trim();
+  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+    mostrarErrorToken('Ingresa tu PIN de 4 dígitos.');
+    return;
+  }
+  const expected = expectedPin(_pendingLeaderKey);
+  if (pin !== expected) {
+    mostrarErrorToken('PIN incorrecto. Intenta nuevamente.');
+    document.getElementById('input-pin').value = '';
+    document.getElementById('input-pin').focus();
+    return;
+  }
+  currentLeader = _pendingLeaderKey;
+  sessionStorage.setItem('lider_activo', currentLeader);
   document.getElementById('modal-token').style.display = 'none';
-  toast('Token guardado ✓');
+  _pendingLeaderKey = null;
+  toast('Acceso autorizado ✓');
   entrarSistema();
+}
+
+function mostrarErrorToken(msg) {
+  const el = document.getElementById('token-error');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
 }
 
 // ══════════════════════════════════════════════
@@ -1089,22 +1145,22 @@ window.onload = () => {
   document.getElementById('act-fecha-display').textContent = formatFecha(hoyISO());
   document.getElementById('registro-fecha-label').textContent = `Hoy: ${formatFecha(hoyISO())}`;
 
-  initDashDates(); // ← debe correr ANTES de entrarSistema para que el filtro de fechas esté listo
-
   const saved = sessionStorage.getItem('lider_activo');
-  if (saved && ghToken()) {
-    currentLeader = saved;
-    entrarSistema();
+  if (saved) {
+    const all = [...LIDERES_INFO, ...GERENTES];
+    if (all.find(l => l.key === saved)) {
+      currentLeader = saved;
+      entrarSistema();
+    }
   }
+
+  initDashDates();
 };
 
 function iniciarSesion() {
   const sel = document.getElementById('login-select');
   if (!sel.value) { toast('Selecciona tu nombre primero', true); return; }
-  currentLeader = sel.value;
-  sessionStorage.setItem('lider_activo', currentLeader);
-  if (!ghToken()) { mostrarModalToken(); return; }
-  entrarSistema();
+  mostrarModalToken(sel.value);
 }
 
 async function entrarSistema() {
@@ -1153,6 +1209,7 @@ function cambiarLider() {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-login').classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('login-select').value = '';
 }
 
 // ══════════════════════════════════════════════
@@ -1576,34 +1633,29 @@ function toast(msg, error = false) {
 }
 </script>
 
-<!-- ══ MODAL TOKEN ══════════════════════════════════════════ -->
-<div id="modal-token" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:16px;padding:40px 36px;width:500px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.2);">
-    <div style="font-family:'Montserrat',sans-serif;font-size:18px;font-weight:800;color:#1a1a1a;margin-bottom:6px">🔑 Token de acceso GitHub</div>
-    <p style="font-size:13px;color:#5a5a5a;margin-bottom:18px;line-height:1.6">Para leer y guardar datos en GitHub necesitas un <strong>Personal Access Token</strong>. Se guarda solo en este navegador.</p>
-
-    <div style="background:#f4f6f8;border-radius:8px;padding:14px 16px;margin-bottom:18px;font-size:12px;color:#5a5a5a;line-height:1.9">
-      <strong style="color:#1a1a1a">Cómo crear tu token (solo la primera vez):</strong><br>
-      1. Ve a <strong>github.com → Settings → Developer settings</strong><br>
-      2. Clic en <strong>Personal access tokens → Tokens (classic)</strong><br>
-      3. Clic en <strong>Generate new token (classic)</strong><br>
-      4. Nombre: <code style="background:#e0e4ea;padding:1px 6px;border-radius:3px">actividad-diaria</code><br>
-      5. Activa el permiso: <code style="background:#e0e4ea;padding:1px 6px;border-radius:3px">repo</code><br>
-      6. Clic en <strong>Generate token</strong> y copia el valor<br>
-      <br>
-      <strong style="color:#1a1a1a">Gerentes:</strong> usar permiso <code style="background:#e0e4ea;padding:1px 6px;border-radius:3px">repo</code> (solo lectura activa automáticamente)
-    </div>
-
-    <label style="display:block;font-size:11px;color:#8a8f9a;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:7px">Pega tu token aquí</label>
-    <input id="input-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-      style="width:100%;padding:12px 14px;border:1.5px solid #dde1e8;border-radius:8px;font-size:13px;font-family:monospace;margin-bottom:16px;outline:none;box-sizing:border-box;"
-      onfocus="this.style.borderColor='#2db928'" onblur="this.style.borderColor='#dde1e8'">
-
-    <button onclick="guardarToken()"
-      style="width:100%;padding:13px;background:#2db928;border:none;border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;">
-      ✓ Guardar y continuar
+<!-- ══ MODAL ACCESO ══════════════════════════════════════════ -->
+<div id="modal-token" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:18px;padding:44px 40px;width:420px;max-width:95vw;box-shadow:0 12px 50px rgba(0,0,0,.25);text-align:center;">
+    <div style="width:60px;height:60px;background:linear-gradient(135deg,#2db928,#8dc63f);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:18px;box-shadow:0 4px 16px rgba(45,185,40,.3)">🔐</div>
+    <div style="font-family:'Montserrat',sans-serif;font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:6px">Verificación de acceso</div>
+    <p style="font-size:13px;color:#8a8f9a;margin-bottom:8px">Ingresando como:</p>
+    <div id="modal-nombre-display" style="font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;color:#2db928;margin-bottom:24px;padding:8px 18px;background:#e8f8e7;border-radius:20px;display:inline-block"></div>
+    <label for="input-pin" style="display:block;font-size:11px;color:#8a8f9a;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px;text-align:left">🔑 PIN de acceso (4 dígitos)</label>
+    <input id="input-pin" type="password" inputmode="numeric" maxlength="4" placeholder="• • • •"
+      style="width:100%;padding:16px;border:1.5px solid #dde1e8;border-radius:10px;font-size:28px;font-family:'Montserrat',sans-serif;font-weight:800;letter-spacing:12px;text-align:center;margin-bottom:10px;outline:none;box-sizing:border-box;transition:border-color .2s;"
+      onfocus="this.style.borderColor='#2db928'" onblur="this.style.borderColor='#dde1e8'"
+      onkeydown="if(event.key==='Enter') guardarToken()">
+    <div id="token-error" style="display:none;background:#fdecea;color:#d63d3d;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:12px;text-align:left"></div>
+    <button id="modal-token-btn" onclick="guardarToken()"
+      style="width:100%;padding:14px;background:#2db928;border:none;border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:background .2s;margin-bottom:10px;"
+      onmouseover="this.style.background='#239420'" onmouseout="this.style.background='#2db928'">
+      ✓ Ingresar
     </button>
-    <p style="font-size:11px;color:#b8bcc8;text-align:center;margin-top:12px">El token se guarda únicamente en este navegador. Nadie más puede verlo.</p>
+    <button onclick="cerrarModalToken()"
+      style="width:100%;padding:10px;background:transparent;border:1.5px solid #dde1e8;border-radius:10px;color:#8a8f9a;font-family:'Open Sans',sans-serif;font-size:13px;cursor:pointer;"
+      onmouseover="this.style.borderColor='#b8bcc8';this.style.color='#5a5a5a'" onmouseout="this.style.borderColor='#dde1e8';this.style.color='#8a8f9a'">
+      ← Volver a selección
+    </button>
   </div>
 </div>
 
